@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:taskmanager/login.dart';
-import 'package:taskmanager/resetpassword.dart';
 import 'package:taskmanager/Signup.dart';
 
 

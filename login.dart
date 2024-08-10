@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:taskmanager/Signup.dart';
-import 'package:taskmanager/resetpassword.dart';
+
+import 'resetpassword.dart';
 
 class LoginPage extends StatelessWidget{
   @override
