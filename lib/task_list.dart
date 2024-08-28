@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taskmanager/task.dart';
 import 'package:taskmanager/task_details.dart';
+import 'package:taskmanager/user_profile.dart';
 
 class TaskList extends StatelessWidget {
   const TaskList({super.key});
@@ -21,6 +22,20 @@ class TaskList extends StatelessWidget {
                 color: Colors.white,
                 fontFamily: AutofillHints.jobTitle),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.account_circle, size: 30),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        UserProfilePage(), // Naviguer vers la page de profil utilisateur
+                  ),
+                );
+              },
+            ),
+          ],
         ),
         floatingActionButton: const FloatingActionButton.extended(
           onPressed: (null),
