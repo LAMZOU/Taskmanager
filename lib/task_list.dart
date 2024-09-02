@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmanager/task.dart';
 import 'package:taskmanager/task_details.dart';
 
@@ -12,6 +13,13 @@ class TaskList extends StatelessWidget {
       home: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          actions: [
+            IconButton(onPressed: () async{
+               final SharedPreferences prefs = await SharedPreferences.getInstance();
+                prefs.clear();
+                Navigator.pop(context);
+            }, icon: Icon (Icons.close))
+          ],
           backgroundColor: Theme.of(context).colorScheme.error,
           title: const Text(
             'Bienvenue dans Task Manager',

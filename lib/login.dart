@@ -1,49 +1,56 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors, use_key_in_widget_constructors, unused_label, non_constant_identifier_names, avoid_types_as_parameter_names, avoid_unnecessary_containers, sized_box_for_whitespace, unnecessary_import, sort_child_properties_last, library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'loginRequest.dart'; // Assurez-vous que le chemin est correct
 import 'package:taskmanager/Signup.dart';
 import 'package:taskmanager/task_list.dart';
-
 import '../resetpassword.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final ApiService apiService = ApiService('http://localhost:4000'); // Votre URL d'API
+
   @override
   Widget build(BuildContext context) {
-    var scaffold = Scaffold(
-      backgroundColor: Color.fromARGB(255, 204, 201, 201),
-      body: Stack(
-        children: [
-          Container(
-            height: double.infinity,
-            width: double.infinity,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  height: MediaQuery.of(context).size.height * 2 / 6,
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Color.fromARGB(255, 204, 201, 201),
+        body: Stack(
+          children: [
+            Container(
+              height: double.infinity,
+              width: double.infinity,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    height: MediaQuery.of(context).size.height * 2 / 6,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Container(
-            margin: EdgeInsets.all(20),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _header(context),
-                  Divider(),
-                  _logo(context),
-                  Divider(),
-                  Container(
+            Container(
+              margin: EdgeInsets.all(20),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _header(context),
+                    Divider(),
+                    _logo(context),
+                    Divider(),
+                    Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(18),
                         color: Colors.white,
@@ -57,22 +64,19 @@ class LoginPage extends StatelessWidget {
                           _forgotpassword(context),
                           _signup(context),
                         ],
-                      )),
-                ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    );
-    return SafeArea(
-      child: scaffold,
     );
   }
 
-  _header(context) {
-    // ignore: duplicate_ignore
-    // ignore: prefer_const_constructors
+  _header(BuildContext context) {
     return Column(
       children: [
         Text(
@@ -86,7 +90,7 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  _logo(context) {
+  _logo(BuildContext context) {
     return Column(
       children: [
         Image.asset(
@@ -97,40 +101,59 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  _inputField(context) {
+  _inputField(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
+          controller: _emailController,
           decoration: InputDecoration(
-              hintText: "Email",
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18),
-                  borderSide: BorderSide.none),
-              fillColor: Theme.of(context).primaryColor.withOpacity(0.1),
-              filled: true,
-              prefixIcon: Icon(Icons.mail)),
+            hintText: "Username",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
+            fillColor: Theme.of(context).primaryColor.withOpacity(0.1),
+            filled: true,
+            prefixIcon: Icon(Icons.mail),
+          ),
         ),
         SizedBox(height: 10),
         TextField(
+          controller: _passwordController,
           decoration: InputDecoration(
             hintText: "Mot de passe",
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(18),
-                borderSide: BorderSide.none),
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
             fillColor: Theme.of(context).primaryColor.withOpacity(0.1),
             filled: true,
-            prefixIcon: Icon(Icons.toggle_off_rounded),
+            prefixIcon: Icon(Icons.lock),
           ),
           obscureText: true,
         ),
         SizedBox(height: 10),
         ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => TaskList()),
-            );
+          onPressed: () async {
+            final email = _emailController.text;
+            final password = _passwordController.text;
+
+            final success = await apiService.login(email, password);
+
+            if (success) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TaskList()),
+              );
+            } else {
+              // Affichez un message d'erreur ici
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Échec de la connexion. Veuillez vérifier vos informations.'),
+                ),
+              );
+            }
           },
           child: Text(
             "Connexion",
@@ -141,38 +164,40 @@ class LoginPage extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 16),
             backgroundColor: Colors.red,
           ),
-        )
+        ),
       ],
     );
   }
 
-  _forgotpassword(context) {
+  _forgotpassword(BuildContext context) {
     return TextButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ResetPasswordPage()),
-          );
-        },
-        child: Text(
-          "Mot de passe oublie?",
-          style: TextStyle(color: Colors.blue),
-        ));
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ResetPasswordPage()),
+        );
+      },
+      child: Text(
+        "Mot de passe oublié?",
+        style: TextStyle(color: Colors.blue),
+      ),
+    );
   }
 
-  _signup(context) {
+  _signup(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text("Vous n'avez pas de compte?"),
         TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SignUpScreen()),
-              );
-            },
-            child: Text("Sign up"))
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SignUpScreen()),
+            );
+          },
+          child: Text("Sign up"),
+        ),
       ],
     );
   }

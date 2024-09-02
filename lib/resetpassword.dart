@@ -6,8 +6,6 @@ import 'package:taskmanager/login.dart';
 import 'package:taskmanager/Signup.dart';
 
 class ResetPasswordPage extends StatelessWidget {
-  
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,6 +133,5 @@ _Reinit(context) {
             ),
     ],
   );
-
-}
+} 
 
