@@ -12,7 +12,9 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final ApiService apiService = ApiService('http://localhost:4000'); // Votre URL d'API
+  final ApiService apiService = ApiService('http://localhost:4000');
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +117,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             fillColor: Theme.of(context).primaryColor.withOpacity(0.1),
             filled: true,
-            prefixIcon: Icon(Icons.mail),
+            prefixIcon: Icon(Icons.account_balance_wallet),
           ),
         ),
         SizedBox(height: 10),
