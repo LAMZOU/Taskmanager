@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -10,11 +11,33 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
-  final String username = "Nom d'utilisateur";
-  final String email = "email@example.com";
-  final String firstName = "Prénom";
-  final String lastName = "Nom";
+  String username = "";
+  String email = "";
+  String firstName = "";
+  String lastName = "";
   File? _image;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final userService = UserService();
+      final userProfile = await userService.getUserProfile();
+
+      setState(() {
+        username = userProfile['username'];
+        email = userProfile['email'];
+        firstName = userProfile['firstName'];
+        lastName = userProfile['lastName'];
+      });
+    } catch (e) {
+      print('Error loading user profile: $e');
+    }
+  }
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -27,13 +50,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
             TextButton(
               child: Text('Galerie'),
               onPressed: () async {
-                Navigator.of(context).pop(await picker.pickImage(source: ImageSource.gallery));
+                Navigator.of(context)
+                    .pop(await picker.pickImage(source: ImageSource.gallery));
               },
             ),
             TextButton(
               child: Text('Caméra'),
               onPressed: () async {
-                Navigator.of(context).pop(await picker.pickImage(source: ImageSource.camera));
+                Navigator.of(context)
+                    .pop(await picker.pickImage(source: ImageSource.camera));
               },
             ),
           ],
@@ -52,9 +77,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _uploadProfilePicture(File imageFile) async {
-    final uri = Uri.parse('http://localhost:4000//auths/profils');
+    final uri = Uri.parse('http://localhost:4000/auths/profils');
     final request = http.MultipartRequest('POST', uri)
-      ..files.add(await http.MultipartFile.fromPath('profilePicture', imageFile.path));
+      ..files.add(
+          await http.MultipartFile.fromPath('profilePicture', imageFile.path));
 
     try {
       final response = await request.send();
@@ -62,7 +88,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         final responseData = await response.stream.bytesToString();
         final data = jsonDecode(responseData);
         print('File uploaded successfully: ${data['filePath']}');
-        // Mettez à jour l'interface utilisateur ou les données utilisateur selon les besoins
       } else {
         print('Failed to upload file');
       }
@@ -99,7 +124,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void _logout() async {
-    // Ajoutez ici la logique pour effacer les informations de connexion.
 
     Navigator.of(context).pushReplacementNamed('/login');
   }
@@ -108,8 +132,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profil Utilisateur'),
-        backgroundColor: Color.fromARGB(255, 245, 118, 6),
         actions: [
           IconButton(
             icon: Icon(Icons.account_circle, size: 30),
@@ -136,28 +158,32 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ),
             ),
             SizedBox(height: 16),
-            Text(
-              '$firstName $lastName',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Container(
+              width: 300,
+              height: 60,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                color: Color.fromARGB(255, 174, 173, 171),
+              ),
+              child: Text(
+                '$firstName $lastName',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
             ),
             SizedBox(height: 8),
-            Text(
-              '@$username',
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+            Container(
+              width: 300,
+              height: 60,
+               decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                color: Color.fromARGB(255, 174, 173, 171),
+              ),
+              child: Text(
+                '@$email',
+                style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+              ),
             ),
             SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.email, color: Colors.grey[600]),
-                SizedBox(width: 8),
-                Text(
-                  email,
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-            SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -166,7 +192,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     _showEditProfileModal(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 250, 70, 4),
+                    backgroundColor: Color.fromARGB(255, 15, 88, 224),
+                    foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(horizontal: 30, vertical: 16),
                     textStyle: TextStyle(fontSize: 22),
                   ),
@@ -175,7 +202,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ElevatedButton(
                   onPressed: _showLogoutConfirmationDialog,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 255, 0, 0),
+                    backgroundColor: Color.fromARGB(255, 181, 3, 3),
+                    foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(horizontal: 30, vertical: 16),
                     textStyle: TextStyle(fontSize: 22),
                   ),
@@ -211,7 +239,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 SizedBox(height: 12),
                 _buildTextField(label: 'Email', initialValue: email),
                 SizedBox(height: 12),
-                _buildTextField(label: "Nom d'utilisateur", initialValue: username),
+                _buildTextField(
+                    label: "Nom d'utilisateur", initialValue: username),
                 SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () {
@@ -232,7 +261,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  Widget _buildTextField({required String label, required String initialValue}) {
+  Widget _buildTextField(
+      {required String label, required String initialValue}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -254,5 +284,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
       ],
     );
+  }
+}
+
+class UserService {
+  final String baseUrl = 'http://localhost:4000'; // URL de votre backend
+
+  Future<Map<String, dynamic>> getUserProfile() async {
+    final response = await http.get(Uri.parse('$baseUrl/auths/profils'));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load user profile');
+    }
   }
 }
