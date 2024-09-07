@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:taskmanager/task.dart';
-import 'package:taskmanager/task_details.dart';
 import 'package:taskmanager/user_profile.dart';
-import 'package:taskmanager/add_task_page.dart';
+import 'add_task_page.dart';
+import 'task.dart';
+import 'package:intl/intl.dart'; // Assurez-vous d'ajouter le package intl à votre pubspec.yaml
+import 'task_service.dart';
 
 class TaskList extends StatefulWidget {
-  const TaskList({super.key});
-  
-
-
   @override
   _TaskListState createState() => _TaskListState();
 }
 
 class _TaskListState extends State<TaskList> {
-  List<Task> _tasks = sampleTask;
+  final List<Task> _tasks = [];
+
+  final taskService = TaskService('http://localhost:4000');
+
 
   void _addTask(Task task) {
     setState(() {
@@ -25,10 +25,8 @@ class _TaskListState extends State<TaskList> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
+    return Scaffold(
+      appBar: AppBar(
           leading: IconButton(
             onPressed: () async {
               final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -61,13 +59,13 @@ class _TaskListState extends State<TaskList> {
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton.extended(
+floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => AddTaskPage(
-                  onTaskAdded: _addTask,
+                  onTaskAdded: _addTask, taskService: taskService,
                 ),
               ),
             );
@@ -83,78 +81,28 @@ class _TaskListState extends State<TaskList> {
           child: Container(
             height: 20.0,
           ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-        body: ListView.builder(
-          padding: const EdgeInsets.all(50.0),
-          itemCount: _tasks.length,
-          itemBuilder: (BuildContext context, int index) {
-            return TaskItem(
-              task: _tasks[index],
-              goTo: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TaskDetails(task: _tasks[index], onEdit: () {  }, onDelete: () {  },),
+          
+      ),
+      body: _tasks.isEmpty? 
+      Center(child: Text('Pas de tache ajouter pour le moment')):
+       ListView.builder(
+              itemCount: _tasks.length,
+              itemBuilder: (context, index) {
+                final task = _tasks[index];
+                return ListTile(
+                  title: Text(task.title),
+                  subtitle: Text(
+                    '${task.content}\n'
+                    'Priority: ${task.priority}\n'
+                    'Color: ${task.color}\n'
+                    'Due: ${DateFormat.yMMMd().format(task.dueDate)}', // Format de date plus lisible
                   ),
+                  // Optionnel : Ajouter un Divider pour améliorer la lisibilité
+                  // contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  // isThreeLine: true,
                 );
               },
-            );
-          },
-        ),
-      ),
+            ),
     );
   }
 }
-
-
-class TaskItem extends StatelessWidget {
-  final Task task;
-  final Function() goTo;
-
-  const TaskItem({super.key, required this.task, required this.goTo});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: goTo,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      task.title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    task.date,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w100,
-                      color: Colors.grey,
-                    ),
-                  )
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.star,
-              color: Colors.red,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-

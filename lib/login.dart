@@ -1,8 +1,10 @@
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
 import 'loginRequest.dart'; // Assurez-vous que le chemin est correct
 import 'package:taskmanager/Signup.dart';
 import 'package:taskmanager/task_list.dart';
-import '../resetpassword.dart';
+
 
 class LoginPage extends StatefulWidget {
   @override
@@ -63,7 +65,6 @@ class _LoginPageState extends State<LoginPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _inputField(context),
-                          _forgotpassword(context),
                           _signup(context),
                         ],
                       ),
@@ -120,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
             prefixIcon: Icon(Icons.account_balance_wallet),
           ),
         ),
-        SizedBox(height: 10),
+        SizedBox(height: 15),
         TextField(
           controller: _passwordController,
           decoration: InputDecoration(
@@ -131,7 +132,11 @@ class _LoginPageState extends State<LoginPage> {
             ),
             fillColor: Theme.of(context).primaryColor.withOpacity(0.1),
             filled: true,
-            prefixIcon: Icon(Icons.lock),
+            prefixIcon:SizedBox(
+               width: 10, 
+               height: 10, 
+               child: Image.asset('images/logo_mdp.png'),
+            ),
           ),
           obscureText: true,
         ),
@@ -170,22 +175,6 @@ class _LoginPageState extends State<LoginPage> {
       ],
     );
   }
-
-  _forgotpassword(BuildContext context) {
-    return TextButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ResetPasswordPage()),
-        );
-      },
-      child: Text(
-        "Mot de passe oublié?",
-        style: TextStyle(color: Colors.blue),
-      ),
-    );
-  }
-
   _signup(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmanager/login.dart';
 import 'package:taskmanager/Signup.dart';
 import 'package:taskmanager/task_list.dart';
+import 'package:taskmanager/user_profile.dart';
 
 const Token="Token";
 void main() async{
@@ -24,11 +25,17 @@ class MyApp extends StatelessWidget{
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Task Manager',
       theme: ThemeData(
         primarySwatch: Colors.blue
       ),
-      home: hasToken?TaskList(): LoginPage(),
+      initialRoute: '/login', // Route initiale
+      routes: {
+        '/login': (context) => hasToken?TaskList(): LoginPage(),
+        '/user-profile': (context) => UserProfilePage(),
+      }
     );
   }
 }
+
+

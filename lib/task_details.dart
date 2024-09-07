@@ -2,35 +2,70 @@ import 'package:flutter/material.dart';
 import 'package:taskmanager/task.dart';
 
 class TaskDetails extends StatelessWidget {
-  const TaskDetails({super.key, required this.task, required this.onEdit, required this.onDelete});
-  
+  const TaskDetails({
+    super.key,
+    required this.task,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
   final Task task;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController _controller = TextEditingController(text: task.title);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Task Details'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: onEdit,
+        title: Text(task.title),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: Container(
+                width: 350.0,
+                height: MediaQuery.of(context).size.height * 2 / 4,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: Color.fromARGB(255, 210, 209, 209),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'content',
+                      border: InputBorder.none,
+                    ),
+                    maxLines: null, // Allows multiple lines
+                  ),
+                ),
+              ),
+            ),
           ),
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: onDelete,
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: onEdit,
+                  child: Text('Edit'),
+                ),
+                ElevatedButton(
+                  onPressed: onDelete,
+                  child: Text('Delete'),
+                ),
+              ],
+            ),
           ),
         ],
-      ),
-      body: Center(
-        child: Text(task.title, style: TextStyle(fontSize: 24)),
       ),
     );
   }
 }
-
 
 void _showEditDialog(BuildContext context, Task task) {
   final TextEditingController _controller = TextEditingController(text: task.title);
@@ -63,13 +98,14 @@ void _showEditDialog(BuildContext context, Task task) {
       );
     },
   );
+}
 
-  void _handleEditTask() {
+void _handleEditTask(BuildContext context, Task task) {
   // Show edit dialog
   _showEditDialog(context, task);
 }
 
-void _handleDeleteTask() {
+void _handleDeleteTask(BuildContext context) {
   // Show confirmation dialog for deletion
   showDialog(
     context: context,
@@ -96,6 +132,3 @@ void _handleDeleteTask() {
     },
   );
 }
-
-}
-

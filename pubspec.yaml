@@ -43,6 +43,7 @@ dependencies:
   provider: ^6.1.2
   shared_preferences: ^2.3.2
   image_picker: ^1.1.2
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
@@ -70,7 +71,8 @@ flutter:
   assets:
     - images/logo.JPG
     - images/profile_image.png
-    - images/mdp1.png
+    - images/logo_mdp.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
