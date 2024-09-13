@@ -26,7 +26,6 @@ class ApiService {
       final token = data["access_token"];
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setString(Token, token!);
-      prefs.clear();
       // Assume successful login if status code is 200
       return true;
     } else {

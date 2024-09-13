@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:taskmanager/user_service.dart';
 
 class UserProfilePage extends StatefulWidget {
   @override
@@ -16,6 +17,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
   String firstName = "";
   String lastName = "";
   File? _image;
+
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
 
   @override
   void initState() {
@@ -31,8 +37,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
       setState(() {
         username = userProfile['username'];
         email = userProfile['email'];
-        firstName = userProfile['firstName'];
-        lastName = userProfile['lastName'];
+        firstName = userProfile['nom'];
+        lastName = userProfile['prenom'];
+
+        // Initialize text controllers with user data
+        _firstNameController.text = firstName;
+        _lastNameController.text = lastName;
+        _emailController.text = email;
+        _usernameController.text = username;
       });
     } catch (e) {
       print('Error loading user profile: $e');
@@ -70,9 +82,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
       setState(() {
         _image = File(pickedFile.path);
       });
-
-      // Envoi de l'image au serveur
-      await _uploadProfilePicture(_image!);
     }
   }
 
@@ -93,6 +102,49 @@ class _UserProfilePageState extends State<UserProfilePage> {
       }
     } catch (e) {
       print('Error uploading file: $e');
+    }
+  }
+
+  Future<void> _updateUserProfile() async {
+    try {
+      final userService = UserService();
+      final updatedUserProfile = {
+        'username': _usernameController.text,
+        'email': _emailController.text,
+        'nom': _firstNameController.text,
+        'prenom': _lastNameController.text,
+      };
+
+      // Mettez à jour les informations utilisateur
+      await userService.updateUserProfile(updatedUserProfile);
+
+      // Si une image a été sélectionnée, téléchargez-la.
+      if (_image != null) {
+        await _uploadProfilePicture(_image!);
+      }
+
+      // Rechargez le profil pour afficher les informations mises à jour.
+      await _loadUserProfile();
+
+      // Afficher un SnackBar pour indiquer que les modifications ont été enregistrées.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Profil mis à jour avec succès !'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('Error updating user profile: $e');
+
+      // Afficher un SnackBar pour indiquer une erreur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Une erreur est survenue lors de la mise à jour du profil.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -124,23 +176,87 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void _logout() async {
+    // Ajoutez ici la logique pour supprimer les informations d'identification de l'utilisateur, si nécessaire.
+    
+    Navigator.of(context).pushReplacementNamed('/login'); // Remplacez '/login' par le nom de votre route de connexion
+  }
 
-    Navigator.of(context).pushReplacementNamed('/login');
+  void _showEditProfileModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Modifier votre profil',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 12),
+                _buildTextField(controller: _firstNameController, label: 'Nom'),
+                SizedBox(height: 12),
+                _buildTextField(controller: _lastNameController, label: 'Prénom'),
+                SizedBox(height: 12),
+                _buildTextField(controller: _emailController, label: 'Email'),
+                SizedBox(height: 12),
+                _buildTextField(controller: _usernameController, label: "Nom d'utilisateur"),
+                SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () {
+                    _updateUserProfile();
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(255, 253, 116, 4),
+                    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                    textStyle: TextStyle(fontSize: 18),
+                  ),
+                  child: Text('Enregistrer les modifications'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30.0),
+              borderSide: BorderSide.none,
+            ),
+            hintText: label,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: Icon(Icons.account_circle, size: 30),
-            onPressed: () {
-              _showEditProfileModal(context);
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -165,22 +281,26 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 borderRadius: BorderRadius.circular(30),
                 color: Color.fromARGB(255, 174, 173, 171),
               ),
-              child: Text(
-                '$firstName $lastName',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              child: Center(
+                child: Text(
+                  '$username',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             SizedBox(height: 8),
             Container(
               width: 300,
               height: 60,
-               decoration: BoxDecoration(
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
-                color: Color.fromARGB(255, 174, 173, 171),
+                color: Color.fromARGB(255, 164, 160, 160),
               ),
-              child: Text(
-                '@$email',
-                style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+              child: Center(
+                child: Text(
+                  '$email',
+                  style: TextStyle(fontSize: 18, color: Color.fromARGB(255, 58, 56, 56)),
+                ),
               ),
             ),
             SizedBox(height: 16),
@@ -215,88 +335,5 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
       ),
     );
-  }
-
-  void _showEditProfileModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Modifier votre profil',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 12),
-                _buildTextField(label: 'Nom', initialValue: firstName),
-                SizedBox(height: 12),
-                _buildTextField(label: 'Prénom', initialValue: lastName),
-                SizedBox(height: 12),
-                _buildTextField(label: 'Email', initialValue: email),
-                SizedBox(height: 12),
-                _buildTextField(
-                    label: "Nom d'utilisateur", initialValue: username),
-                SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 253, 116, 4),
-                    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                    textStyle: TextStyle(fontSize: 18),
-                  ),
-                  child: Text('Enregistrer les modifications'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTextField(
-      {required String label, required String initialValue}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 8),
-        TextField(
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30.0),
-              borderSide: BorderSide.none,
-            ),
-            hintText: initialValue,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class UserService {
-  final String baseUrl = 'http://localhost:4000'; // URL de votre backend
-
-  Future<Map<String, dynamic>> getUserProfile() async {
-    final response = await http.get(Uri.parse('$baseUrl/auths/profils'));
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to load user profile');
-    }
   }
 }

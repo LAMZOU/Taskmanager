@@ -72,6 +72,9 @@ flutter:
     - images/logo.JPG
     - images/profile_image.png
     - images/logo_mdp.png
+    - images/high.png
+    - images/medium.png
+    - images/low.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

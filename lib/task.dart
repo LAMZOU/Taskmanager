@@ -1,4 +1,5 @@
 class Task {
+  int? id;
   final String title;
   final String content;
   final String priority;
@@ -6,6 +7,7 @@ class Task {
   final DateTime dueDate;
 
   Task({
+    this.id,
     required this.title,
     required this.content,
     required this.priority,
@@ -27,6 +29,7 @@ class Task {
   // Méthode pour créer un objet Task à partir d'une map (réponse du backend)
   factory Task.fromJson(Map<String, dynamic> json) {
     return Task(
+      id: json['id'],
       title: json['title'],
       content: json['content'],
       priority: json['priority'],
@@ -34,4 +37,11 @@ class Task {
       dueDate: DateTime.parse(json['dueDate']),
     );
   }
+
+// Static method to parse a list of tasks from JSON array
+static List<Task> fromJsonList(List<dynamic> jsonList) {
+return jsonList.map((json) => Task.fromJson(json)).toList();
 }
+}
+
+
