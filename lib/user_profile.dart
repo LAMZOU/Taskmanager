@@ -3,8 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:taskmanager/user_service.dart';
+import 'package:taskmanager/user.dart';
 
 class UserProfilePage extends StatefulWidget {
   @override
@@ -39,6 +39,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         email = userProfile['email'];
         firstName = userProfile['nom'];
         lastName = userProfile['prenom'];
+        // Load image from profile if provided
+        if (userProfile['profilePicture'] != null) {
+          _image = File(userProfile['profilePicture']);
+        }
 
         // Initialize text controllers with user data
         _firstNameController.text = firstName;
@@ -115,18 +119,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
         'prenom': _lastNameController.text,
       };
 
-      // Mettez à jour les informations utilisateur
+      // Update user profile information
       await userService.updateUserProfile(updatedUserProfile);
 
-      // Si une image a été sélectionnée, téléchargez-la.
+      // Upload image if selected
       if (_image != null) {
         await _uploadProfilePicture(_image!);
       }
 
-      // Rechargez le profil pour afficher les informations mises à jour.
+      // Reload profile to show updated information
       await _loadUserProfile();
 
-      // Afficher un SnackBar pour indiquer que les modifications ont été enregistrées.
+      // Show SnackBar indicating success
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Profil mis à jour avec succès !'),
@@ -137,10 +141,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
     } catch (e) {
       print('Error updating user profile: $e');
 
-      // Afficher un SnackBar pour indiquer une erreur
+      // Show SnackBar indicating error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Une erreur est survenue lors de la mise à jour du profil.'),
+          content: Text('Une erreur est survenue lors de la mise à jour du profil. Veuillez réessayer plus tard.'),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
         ),
@@ -176,9 +180,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void _logout() async {
-    // Ajoutez ici la logique pour supprimer les informations d'identification de l'utilisateur, si nécessaire.
-    
-    Navigator.of(context).pushReplacementNamed('/login'); // Remplacez '/login' par le nom de votre route de connexion
+    Navigator.of(context).pushReplacementNamed('/login'); // Replace '/login' with your login route name
   }
 
   void _showEditProfileModal(BuildContext context) {
@@ -195,6 +197,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 Text(
                   'Modifier votre profil',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 12),
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundImage: _image != null
+                        ? FileImage(_image!)
+                        : AssetImage('images/profile_image.png') as ImageProvider,
+                    child: _image == null
+                        ? Icon(Icons.add_a_photo, size: 30, color: Colors.white)
+                        : null,
+                  ),
                 ),
                 SizedBox(height: 12),
                 _buildTextField(controller: _firstNameController, label: 'Nom'),
@@ -256,7 +271,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Text('Profil Utilisateur'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -269,7 +286,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     ? FileImage(_image!)
                     : AssetImage('images/profile_image.png') as ImageProvider,
                 child: _image == null
-                    ? Icon(Icons.add_a_photo, size: 15, color: Colors.white)
+                    ? Icon(Icons.add_a_photo, size: 30, color: Colors.white)
                     : null,
               ),
             ),

@@ -4,9 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmanager/task.dart';
 
 class TaskService {
-  final String baseUrl = 'http://localhost:4000';
+  final String baseUrl;
 
-  TaskService(String s);
+  TaskService(this.baseUrl);
 
   Future<bool> addTask({
     required String title,
@@ -65,8 +65,8 @@ class TaskService {
   }) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('Token');
-    final response = await http.put(
-      Uri.parse('$baseUrl/task/{id}'), // Convert id to String here
+    final response = await http.patch(
+      Uri.parse('$baseUrl/task/$id'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': 'Bearer $token',
@@ -87,7 +87,7 @@ class TaskService {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('Token');
     final response = await http.delete(
-      Uri.parse('$baseUrl/task/$id'), // Convert id to String here
+      Uri.parse('$baseUrl/task/$id'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': 'Bearer $token',

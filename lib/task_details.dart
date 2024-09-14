@@ -1,30 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:taskmanager/task.dart';
-import 'package:taskmanager/task_service.dart'; // Assurez-vous d'importer TaskService
+import 'package:taskmanager/task_service.dart';
 
-class TaskDetails extends StatelessWidget {
+class TaskDetails extends StatefulWidget {
   const TaskDetails({
-    super.key,
+    Key? key,
     required this.task,
-    required this.onTaskUpdated, // Callback to refresh the task list
-    required this.onTaskDeleted, // Callback to refresh the task list
-    required this.onEdit, // Callback to edit the task
-    required this.onDelete, // Callback to delete the task
-  });
+    required this.onTaskUpdated,
+    required this.onTaskDeleted, required Future<void> Function() onEdit, required Future<void> Function() onDelete,
+  }) : super(key: key);
 
   final Task task;
   final VoidCallback onTaskUpdated;
   final VoidCallback onTaskDeleted;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+
+  @override
+  _TaskDetailsState createState() => _TaskDetailsState();
+}
+
+class _TaskDetailsState extends State<TaskDetails> {
+  late Task _task;
+  late TaskService _taskService;
+
+  @override
+  void initState() {
+    super.initState();
+    _task = widget.task;
+    _taskService = TaskService('http://localhost:4000');
+  }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _controller = TextEditingController(text: task.content);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(task.title),
+        title: Text(_task.title),
       ),
       body: Center(
         child: Column(
@@ -32,41 +41,41 @@ class TaskDetails extends StatelessWidget {
           children: [
             // Container with text content
             Container(
-              width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
-              height: MediaQuery.of(context).size.height * 0.4, // 40% of screen height
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: MediaQuery.of(context).size.height * 0.4,
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
                 color: Color.fromARGB(255, 245, 240, 240),
               ),
-              child: TextField(
-                controller: _controller,
-                decoration: InputDecoration(
-                  hintText: 'Contenu de la tâche',
-                  border: InputBorder.none,
+              child: SingleChildScrollView(
+                child: Text(
+                  _task.content,
+                  style: TextStyle(fontSize: 16),
                 ),
-                maxLines: null, // Allows multiple lines
               ),
             ),
-            const SizedBox(height: 16), // Spacing between the container and buttons
+            const SizedBox(height: 16),
             // Row with buttons
             Container(
-              width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
-              height: MediaQuery.of(context).size.height * 0.1, // 10% of screen height
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: MediaQuery.of(context).size.height * 0.1,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
                     onPressed: () => _handleEditTask(context),
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white, backgroundColor: Colors.blue, // White text
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.blue,
                     ),
                     child: Text('Modifier'),
                   ),
                   ElevatedButton(
                     onPressed: () => _handleDeleteTask(context),
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white, backgroundColor: Colors.red, // White text
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.red,
                     ),
                     child: Text('Supprimer'),
                   ),
@@ -83,8 +92,8 @@ class TaskDetails extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) {
-        final TextEditingController _titleController = TextEditingController(text: task.title);
-        final TextEditingController _contentController = TextEditingController(text: task.content);
+        final TextEditingController _titleController = TextEditingController(text: _task.title);
+        final TextEditingController _contentController = TextEditingController(text: _task.content);
 
         return AlertDialog(
           title: Text('Modifier la tâche'),
@@ -99,15 +108,14 @@ class TaskDetails extends StatelessWidget {
               TextField(
                 controller: _contentController,
                 decoration: InputDecoration(hintText: 'Entrez un nouveau contenu'),
-                maxLines: null, // Allows multiple lines
+                maxLines: null,
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () async {
-                if (task.id == null) {
-                  // Handle the case where task ID is null
+                if (_task.id == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Tâche invalide')),
                   );
@@ -115,25 +123,32 @@ class TaskDetails extends StatelessWidget {
                   return;
                 }
 
-                final taskService = TaskService('http://localhost:4000'); // Correctly instantiate TaskService
                 final updatedTitle = _titleController.text;
                 final updatedContent = _contentController.text;
 
-                bool success = await taskService.updateTask(
-                  id: task.id!,
+                bool success = await _taskService.updateTask(
+                  id: _task.id!,
                   title: updatedTitle,
                   content: updatedContent,
-                  priority: task.priority,
-                  color: task.color,
-                  dueDate: task.dueDate,
+                  priority: _task.priority,
+                  color: _task.color,
+                  dueDate: _task.dueDate,
                 );
 
                 if (success) {
-                  // Notify the parent to refresh the task list
-                  onTaskUpdated();
+                  setState(() {
+                    _task = Task(
+                      id: _task.id,
+                      title: updatedTitle,
+                      content: updatedContent,
+                      priority: _task.priority,
+                      color: _task.color,
+                      dueDate: _task.dueDate,
+                    );
+                  });
+                  widget.onTaskUpdated();
                   Navigator.of(context).pop();
                 } else {
-                  // Show error message
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Erreur lors de la mise à jour de la tâche')),
                   );
@@ -154,53 +169,49 @@ class TaskDetails extends StatelessWidget {
   }
 
   void _handleDeleteTask(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: Text('Supprimer la tâche'),
-        content: Text('Êtes-vous sûr de vouloir supprimer cette tâche ?'),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              if (task.id == null) {
-                // Handle the case where task ID is null
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Tâche invalide')),
-                );
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Supprimer la tâche'),
+          content: Text('Êtes-vous sûr de vouloir supprimer cette tâche ?'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (_task.id == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Tâche invalide')),
+                  );
+                  Navigator.of(context).pop();
+                  return;
+                }
+
+                bool success = await _taskService.deleteTask(_task.id!);
+
+                if (success) {
+                  widget.onTaskDeleted();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('La tâche a été supprimée avec succès')),
+                  );
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erreur lors de la suppression de la tâche')),
+                  );
+                }
+              },
+              child: Text('Supprimer'),
+            ),
+            TextButton(
+              onPressed: () {
                 Navigator.of(context).pop();
-                return;
-              }
-
-              final taskService = TaskService('http://localhost:4000'); // Correctly instantiate TaskService
-
-              bool success = await taskService.deleteTask(task.id!);
-
-              if (success) {
-                // Notify the parent to refresh the task list
-                onTaskDeleted();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('La tâche a été supprimée avec succès')),
-                );
-                Navigator.of(context).pop();
-              } else {
-                // Show error message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Erreur lors de la suppression de la tâche')),
-                );
-              }
-            },
-            child: Text('Supprimer'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Annuler'),
-          ),
-        ],
-      );
-    },
-  );
-}
+              },
+              child: Text('Annuler'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

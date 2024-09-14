@@ -1,10 +1,7 @@
-// ignore_for_file: unused_import
-
 import 'package:flutter/material.dart';
 import 'loginRequest.dart'; // Assurez-vous que le chemin est correct
 import 'package:taskmanager/Signup.dart';
 import 'package:taskmanager/task_list.dart';
-
 
 class LoginPage extends StatefulWidget {
   @override
@@ -15,8 +12,6 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final ApiService apiService = ApiService('http://localhost:4000');
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +113,10 @@ class _LoginPageState extends State<LoginPage> {
             ),
             fillColor: Theme.of(context).primaryColor.withOpacity(0.1),
             filled: true,
-            prefixIcon: Icon(Icons.account_balance_wallet),
+            prefixIcon: Icon(
+              Icons.account_balance_wallet,
+              size: 34, // Spécifiez la taille uniforme pour l'icône
+            ),
           ),
         ),
         SizedBox(height: 15),
@@ -132,10 +130,10 @@ class _LoginPageState extends State<LoginPage> {
             ),
             fillColor: Theme.of(context).primaryColor.withOpacity(0.1),
             filled: true,
-            prefixIcon:SizedBox(
-               width: 10, 
-               height: 10, 
-               child: Image.asset('images/logo_mdp.png'),
+            prefixIcon: SizedBox(
+              width: 14, // Spécifiez la largeur pour l'icône
+              height: 24, // Spécifiez la hauteur pour l'icône
+              child: Image.asset('images/logo_mdp.png'),
             ),
           ),
           obscureText: true,
@@ -175,6 +173,7 @@ class _LoginPageState extends State<LoginPage> {
       ],
     );
   }
+
   _signup(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

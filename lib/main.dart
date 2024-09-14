@@ -1,24 +1,22 @@
-// ignore_for_file: unused_import
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskmanager/login.dart';
-import 'package:taskmanager/Signup.dart';
+import 'package:taskmanager/signup.dart'; // Corrected import to match the class name
 import 'package:taskmanager/task_list.dart';
 import 'package:taskmanager/user_profile.dart';
 
-const Token="Token";
-void main() async{
-await WidgetsFlutterBinding.ensureInitialized();
+const String Token = "Token";
 
+void main() async {
+  await WidgetsFlutterBinding.ensureInitialized();
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  final bool hasToken=prefs.getString(Token)!=null;
-  runApp(MyApp(hasToken:hasToken));
+  final bool hasToken = prefs.getString(Token) != null;
+  runApp(MyApp(hasToken: hasToken));
 }
 
-
-class MyApp extends StatelessWidget{
+class MyApp extends StatelessWidget {
   final bool hasToken;
+
   const MyApp({super.key, required this.hasToken});
 
   @override
@@ -27,15 +25,27 @@ class MyApp extends StatelessWidget{
       debugShowCheckedModeBanner: false,
       title: 'Task Manager',
       theme: ThemeData(
-        primarySwatch: Colors.blue
+        primarySwatch: Colors.blue,
       ),
-      initialRoute: '/login', // Route initiale
-      routes: {
-        '/login': (context) => hasToken?TaskList(): LoginPage(),
-        '/user-profile': (context) => UserProfilePage(),
-      }
+      initialRoute: hasToken ? '/task-list' : '/login',
+      onGenerateRoute: (RouteSettings settings) {
+        switch (settings.name) {
+          case '/login':
+            return MaterialPageRoute(builder: (_) => LoginPage());
+          case '/signup':
+            return MaterialPageRoute(builder: (_) => SignUpScreen());
+          case '/task-list':
+            return MaterialPageRoute(builder: (_) => TaskList());
+          case '/user-profile':
+            return MaterialPageRoute(builder: (_) => UserProfilePage());
+          default:
+            return MaterialPageRoute(
+              builder: (_) => Scaffold(
+                body: Center(child: Text('Page not found')),
+              ),
+            );
+        }
+      },
     );
   }
 }
-
-
